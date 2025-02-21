@@ -1152,7 +1152,7 @@ namespace Chromatic
                     diff_G = 0;
                     diff_R = 0;
 
-                    cosTheta = Math.Acos((LAB_L * mean_LAB_L + LAB_A * mean_LAB_A + LAB_B * mean_LAB_B) / (Math.Sqrt(LAB_L * LAB_L + LAB_A * LAB_A + LAB_B * LAB_B) * Math.Sqrt(mean_LAB_L * mean_LAB_L + mean_LAB_A * mean_LAB_A + mean_LAB_B * mean_LAB_B))) * 180 / Math.PI + 1;
+                    cosTheta = Math.Acos((LAB_L * mean_LAB_L + LAB_A * mean_LAB_A + LAB_B * mean_LAB_B) / (Math.Sqrt(LAB_L * LAB_L + LAB_A * LAB_A + LAB_B * LAB_B) * Math.Sqrt(mean_LAB_L * mean_LAB_L + mean_LAB_A * mean_LAB_A + mean_LAB_B * mean_LAB_B))) * 180 / Math.PI;
 
                 }
 
