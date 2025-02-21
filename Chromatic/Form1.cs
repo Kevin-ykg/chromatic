@@ -756,9 +756,11 @@ namespace Chromatic
 
 
                                 //只有1个色号，且角度差距大于0.2时，计算CIE76色差时会考虑角度的影响
-                                if (Math.Abs(diff_Delta_E_pure) <0.3 && cosTheta > 0.2 && list_lab.Count == 0)
+                                if (Math.Abs(diff_Delta_E_pure) <0.15 && cosTheta > 0.2 && list_lab.Count <= Ceramics_info_list.Count)
                                 {
-                                    diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - tuple_infos.Item5.Item2;
+                                    //diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - tuple_infos.Item5.Item2;
+
+                                    diff_Delta_E_pure = Delta_E_pure * Math.Cos(cosTheta) - tuple_infos.Item5.Item2;
                                 }
 
 
@@ -771,9 +773,11 @@ namespace Chromatic
                                         {
                                             var lab_select = new LabColor(lt_lab.Item2, lt_lab.Item3, lt_lab.Item4);
 
-                                            if (Math.Abs(diff_Delta_E_pure) < 0.3 && cosTheta > 0.2)    
+                                            if (Math.Abs(diff_Delta_E_pure) < 0.15 && cosTheta > 0.2)    
                                             {
-                                                diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - tuple_infos.Item5.Item2;
+                                                //diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - tuple_infos.Item5.Item2;
+
+                                                diff_Delta_E_pure = Delta_E_pure * Math.Cos(cosTheta) - tuple_infos.Item5.Item2;
                                             }
                                         }
 
@@ -922,9 +926,11 @@ namespace Chromatic
 
 
                                 //只有1个色号，且角度差距大于0.2时，计算CIE76色差时会考虑角度的影响
-                                if (Math.Abs(diff_Delta_E_pure) < 0.3 && cosTheta > 0.2 && list_lab.Count == 0)
+                                if (Math.Abs(diff_Delta_E_pure) < 0.15 && cosTheta > 0.2 && list_lab.Count <= Ceramics_info_list.Count)
                                 {
-                                    diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
+                                    //diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
+
+                                    diff_Delta_E_pure = Delta_E_pure * Math.Cos(cosTheta) - mean_Delta_E_pure;
                                 }
 
 
@@ -937,9 +943,11 @@ namespace Chromatic
                                         {
                                             var lab_select = new LabColor(lt_lab.Item2, lt_lab.Item3, lt_lab.Item4);
 
-                                            if (Math.Abs(diff_Delta_E_pure) < 0.3 && cosTheta > 0.2) 
+                                            if (Math.Abs(diff_Delta_E_pure) < 0.15 && cosTheta > 0.2) 
                                             {
-                                                diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
+                                                //diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
+
+                                                diff_Delta_E_pure = Delta_E_pure * Math.Cos(cosTheta) - mean_Delta_E_pure;
                                             }
                                         }
 
@@ -999,9 +1007,11 @@ namespace Chromatic
 
 
                                 //只有1个色号，且角度差距大于0.2时，计算CIE76色差时会考虑角度的影响
-                                if (Math.Abs(diff_Delta_E_pure) < 0.3 && cosTheta > 0.2 && list_lab.Count == 0)
+                                if (Math.Abs(diff_Delta_E_pure) < 0.15 && cosTheta > 0.2 && list_lab.Count <= Ceramics_info_list.Count)
                                 {
-                                    diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
+                                    //diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
+
+                                    diff_Delta_E_pure = Delta_E_pure * Math.Cos(cosTheta) - mean_Delta_E_pure;
                                 }
 
 
@@ -1014,9 +1024,11 @@ namespace Chromatic
                                         {
                                             var lab_select = new LabColor(lt_lab.Item2, lt_lab.Item3, lt_lab.Item4);
 
-                                            if (Math.Abs(diff_Delta_E_pure) < 0.3 && cosTheta > 0.2)
+                                            if (Math.Abs(diff_Delta_E_pure) < 0.15 && cosTheta > 0.2)
                                             {
-                                                diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
+                                                //diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
+
+                                                diff_Delta_E_pure = Delta_E_pure * Math.Cos(cosTheta) - mean_Delta_E_pure;
                                             }
                                         }
 
@@ -1185,17 +1197,17 @@ namespace Chromatic
                 double pattern_count = Ceramics_info_list.Count;
 
                 //根据砖面的色系和花纹复杂度，动态的调整开色阈值和区间范围
-                //if (measure.Average_gray < 100 && sigma_LAB_L < 2) { diff_Delta_E *= 3; }
-                //else if (measure.Average_gray < 100 && sigma_LAB_L < 0.5 && measure.Coefficient <= 16) { diff_Delta_E *= 3; }         //对于比较暗色系纹理不复杂的砖容易出现色差，且本身比较暗，色度值容易被拉低
-                //else if (measure.Average_gray < 200 && sigma_LAB_L < 5 && measure.Coefficient <= 26 && measure.Coefficient >= 6 && pattern_count <= 4) { diff_Delta_E *= 3; }
-                //else if (measure.Average_gray < 200 && sigma_LAB_L < 5 && measure.Coefficient <= 26 && measure.Coefficient >= 6 && pattern_count > 4) { diff_Delta_E *= 2.3; }
-                //else if (measure.Average_gray < 180 && sigma_LAB_L < 0.3 && measure.Coefficient <= 6) { diff_Delta_E *= 3; }
+                if (measure.Average_gray < 100 && sigma_LAB_L < 2) { diff_Delta_E *= 3; }
+                else if (measure.Average_gray < 100 && sigma_LAB_L < 0.5 && measure.Coefficient <= 16) { diff_Delta_E *= 3; }         //对于比较暗色系纹理不复杂的砖容易出现色差，且本身比较暗，色度值容易被拉低
+                else if (measure.Average_gray < 200 && sigma_LAB_L < 5 && measure.Coefficient <= 26 && measure.Coefficient >= 6 && pattern_count <= 4) { diff_Delta_E *= 3; }
+                else if (measure.Average_gray < 200 && sigma_LAB_L < 5 && measure.Coefficient <= 26 && measure.Coefficient >= 6 && pattern_count > 4) { diff_Delta_E *= 2.3; }
+                else if (measure.Average_gray < 180 && sigma_LAB_L < 0.3 && measure.Coefficient <= 6) { diff_Delta_E *= 3; }
 
                 if (sigma_LAB_L >= 5 && measure.Coefficient > 26) { diff_Delta_E /= 3; }         //对于纹理复杂的砖型，要减弱影响
 
                 if (pattern == "版型0") { diff_LAB_L *= 2; }    //对于变化不大的试抛砖，提升亮度的差值，让其色号显示为0
 
-                //diff_Delta_E /= 10;
+
                 //利用E2000的公式来进行色号的判断
                 //diff_Delta_E = deltaE;
 
