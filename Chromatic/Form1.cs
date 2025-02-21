@@ -751,22 +751,18 @@ namespace Chromatic
                                 cosTheta = Calculate_angle(lab_current,lab_templeate);
 
 
-                                double tanTheta_template = Math.Atan(tuple_infos.Item6.Item6 / tuple_infos.Item6.Item4) * 180 / Math.PI;
-                                double tanTheta_current = Math.Atan(LAB_B / LAB_A) * 180 / Math.PI;
-
-
                                 //启动模板匹配时，CIE76版本的色差计算方式
                                 diff_Delta_E_pure = Delta_E_pure - tuple_infos.Item5.Item2;
 
 
                                 //只有1个色号，且角度差距大于0.2时，计算CIE76色差时会考虑角度的影响
-                                if (Calculate_angle(lab_current, lab_templeate) > 0.2 && list_lab.Count == 0)
+                                if (Math.Abs(diff_Delta_E_pure) <0.3 && cosTheta > 0.2 && list_lab.Count == 0)
                                 {
                                     diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - tuple_infos.Item5.Item2;
                                 }
 
 
-                                //对出现的所有色号都进行E的比较，并累加求和
+                                //当出现2号色后，对出现的所有色号都进行E的比较，并累加求和
                                 if (list_lab.Count > 0)
                                 {
                                     foreach (var lt_lab in list_lab)
@@ -775,7 +771,7 @@ namespace Chromatic
                                         {
                                             var lab_select = new LabColor(lt_lab.Item2, lt_lab.Item3, lt_lab.Item4);
 
-                                            if (Calculate_angle(lab_current,lab_select) > 0.2)    //只有当差距大于某一阈值再进行累加，防止颜色的缓变，导致颜色越开越多，但也有矛盾，可能会导致一些E值表现不明显但现场分出色号的砖分不出来
+                                            if (Math.Abs(diff_Delta_E_pure) < 0.3 && cosTheta > 0.2)    
                                             {
                                                 diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - tuple_infos.Item5.Item2;
                                             }
@@ -783,7 +779,6 @@ namespace Chromatic
 
                                     }
                                 }
-
 
 
                                 diff_Delta_E_texture = Delta_E_texture - tuple_infos.Item5.Item4;
@@ -795,15 +790,13 @@ namespace Chromatic
                                 diff_BGR_G = BGR_G - tuple_infos.Item7.Item4;
                                 diff_BGR_R = BGR_R - tuple_infos.Item7.Item6;
 
-
-                                
-
+                              
 
                                 // 利用CIEDE2000公式计算色差
                                 deltaE = CalculateCIEDE2000(lab_current, lab_templeate);
 
 
-                                //对出现的所有色号都进行E的比较，并累加求和
+                                //基于CIEDE2000公式对出现的所有色号都进行E的比较，并累加求和
                                 //if (list_lab.Count > 0)
                                 //{
                                 //    foreach (var lt_lab in list_lab)
@@ -854,14 +847,9 @@ namespace Chromatic
 
 
                                 //Cv2.ImWrite(@"C:\\Users\\Lenovo\\Desktop\\dst_sub_temp_b.jpg", dst_sub_temp_b);
-
                                 //double min, max, min1, max1;
                                 //Cv2.MinMaxIdx(dst_sub_temp_b, out min, out max);
                                 //Cv2.MinMaxIdx(temp_sub_dst_b, out min1, out max1);
-
-                                //diff_B = (double)Cv2.Mean(dst_sub_temp_b) + (double)Cv2.Mean(temp_sub_dst_b);
-                                //diff_G = (double)Cv2.Mean(dst_sub_temp_g) + (double)Cv2.Mean(temp_sub_dst_g);
-                                //diff_R = (double)Cv2.Mean(dst_sub_temp_r) + (double)Cv2.Mean(temp_sub_dst_r);
 
 
                                 //通过RGB通道的差值，来计算色差
@@ -920,16 +908,42 @@ namespace Chromatic
 
                             if (start_Pattern_Matching == true)  //由于标定时会使用标准色号的砖型，因此不通过版型区分
                             {
-                                cosTheta = Math.Acos((LAB_L * mean_LAB_L + LAB_A * mean_LAB_A + LAB_B * mean_LAB_B) / (Math.Sqrt(LAB_L * LAB_L + LAB_A * LAB_A + LAB_B * LAB_B) * Math.Sqrt(mean_LAB_L * mean_LAB_L + mean_LAB_A * mean_LAB_A + mean_LAB_B * mean_LAB_B))) * 180 / Math.PI + 1;
+                                // 定义两个颜色的 Lab 值
+                                var lab_current = new LabColor(LAB_L, LAB_A, LAB_B);     //当前砖的L,A,B通道数值
+                                var lab_templeate = new LabColor(mean_LAB_L, mean_LAB_A, mean_LAB_B);                                                //对应模板砖的L,A,B通道数值
 
-                                double tanTheta_template = Math.Atan(mean_LAB_B / mean_LAB_A) * 180 / Math.PI;
-                                double tanTheta_current = Math.Atan(LAB_B / LAB_A) * 180 / Math.PI;
+
+                                //计算空间中向量的夹角，来表示色差
+                                cosTheta = Calculate_angle(lab_current, lab_templeate);
+
 
                                 //启动模板匹配时，CIE76版本的色差计算方式
                                 diff_Delta_E_pure = Delta_E_pure - mean_Delta_E_pure;
-                                if (Math.Abs(diff_Delta_E_pure) <= 0.15 && is_stable == true)
+
+
+                                //只有1个色号，且角度差距大于0.2时，计算CIE76色差时会考虑角度的影响
+                                if (Math.Abs(diff_Delta_E_pure) < 0.3 && cosTheta > 0.2 && list_lab.Count == 0)
                                 {
-                                    diff_Delta_E_pure = Delta_E_pure * Math.Cos(tanTheta_current) - mean_Delta_E_pure * Math.Cos(tanTheta_template);
+                                    diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
+                                }
+
+
+                                //当出现2号色后，对出现的所有色号都进行E的比较，并累加求和
+                                if (list_lab.Count > 0)
+                                {
+                                    foreach (var lt_lab in list_lab)
+                                    {
+                                        if (lt_lab.Item1 == pattern)
+                                        {
+                                            var lab_select = new LabColor(lt_lab.Item2, lt_lab.Item3, lt_lab.Item4);
+
+                                            if (Math.Abs(diff_Delta_E_pure) < 0.3 && cosTheta > 0.2) 
+                                            {
+                                                diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
+                                            }
+                                        }
+
+                                    }
                                 }
 
 
@@ -942,10 +956,6 @@ namespace Chromatic
                                 diff_BGR_G = BGR_G - mean_BGR_G;
                                 diff_BGR_R = BGR_R - mean_BGR_R;
 
-
-                                // 定义两个颜色的 Lab 值
-                                var lab_current = new LabColor(LAB_L, LAB_A, LAB_B);
-                                var lab_templeate = new LabColor(mean_LAB_L, mean_LAB_A, mean_LAB_B);
 
                                 // 计算 CIEDE2000 色差
                                 deltaE = CalculateCIEDE2000(lab_current, lab_templeate);
@@ -975,16 +985,42 @@ namespace Chromatic
 
                             if (start_Pattern_Matching == true)
                             {
-                                cosTheta = Math.Acos((LAB_L * mean_LAB_L + LAB_A * mean_LAB_A + LAB_B * mean_LAB_B) / (Math.Sqrt(LAB_L * LAB_L + LAB_A * LAB_A + LAB_B * LAB_B) * Math.Sqrt(mean_LAB_L * mean_LAB_L + mean_LAB_A * mean_LAB_A + mean_LAB_B * mean_LAB_B))) * 180 / Math.PI + 1;
+                                // 定义两个颜色的 Lab 值
+                                var lab_current = new LabColor(LAB_L, LAB_A, LAB_B);     //当前砖的L,A,B通道数值
+                                var lab_templeate = new LabColor(mean_LAB_L, mean_LAB_A, mean_LAB_B);                                                //对应模板砖的L,A,B通道数值
 
-                                double tanTheta_template = Math.Atan(mean_LAB_B / mean_LAB_A) * 180 / Math.PI;
-                                double tanTheta_current = Math.Atan(LAB_B / LAB_A) * 180 / Math.PI;
+
+                                //计算空间中向量的夹角，来表示色差
+                                cosTheta = Calculate_angle(lab_current, lab_templeate);
+
 
                                 //启动模板匹配时，CIE76版本的色差计算方式
                                 diff_Delta_E_pure = Delta_E_pure - mean_Delta_E_pure;
-                                if (Math.Abs(diff_Delta_E_pure) <= 0.15 && is_stable == true)
+
+
+                                //只有1个色号，且角度差距大于0.2时，计算CIE76色差时会考虑角度的影响
+                                if (Math.Abs(diff_Delta_E_pure) < 0.3 && cosTheta > 0.2 && list_lab.Count == 0)
                                 {
-                                    diff_Delta_E_pure = Delta_E_pure * Math.Cos(tanTheta_current) - mean_Delta_E_pure * Math.Cos(tanTheta_template);
+                                    diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
+                                }
+
+
+                                //当出现2号色后，对出现的所有色号都进行E的比较，并累加求和
+                                if (list_lab.Count > 0)
+                                {
+                                    foreach (var lt_lab in list_lab)
+                                    {
+                                        if (lt_lab.Item1 == pattern)
+                                        {
+                                            var lab_select = new LabColor(lt_lab.Item2, lt_lab.Item3, lt_lab.Item4);
+
+                                            if (Math.Abs(diff_Delta_E_pure) < 0.3 && cosTheta > 0.2)
+                                            {
+                                                diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
+                                            }
+                                        }
+
+                                    }
                                 }
 
 
@@ -997,10 +1033,6 @@ namespace Chromatic
                                 diff_BGR_G = BGR_G - mean_BGR_G;
                                 diff_BGR_R = BGR_R - mean_BGR_R;
 
-
-                                // 定义两个颜色的 Lab 值
-                                var lab_current = new LabColor(LAB_L, LAB_A, LAB_B);
-                                var lab_templeate = new LabColor(mean_LAB_L, mean_LAB_A, mean_LAB_B);
 
                                 // 计算 CIEDE2000 色差
                                 deltaE = CalculateCIEDE2000(lab_current, lab_templeate);
@@ -3452,7 +3484,7 @@ namespace Chromatic
             sum_Delta_E_texture= 0;
             Delta_E_pure= 0;
             Delta_E_texture= 0;
-            cosTheta = 1;
+            cosTheta = 0;
             deltaE = 0;
             first_Delta_E = 0;
             first_LAB_L = 0;
