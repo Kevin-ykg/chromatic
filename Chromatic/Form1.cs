@@ -758,8 +758,6 @@ namespace Chromatic
                                 //只有1个色号，且角度差距大于0.2时，计算CIE76色差时会考虑角度的影响
                                 if (Math.Abs(diff_Delta_E_pure) <0.15 && cosTheta > 0.2 && list_lab.Count <= Ceramics_info_list.Count)
                                 {
-                                    //diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - tuple_infos.Item5.Item2;
-
                                     diff_Delta_E_pure = Delta_E_pure * Math.Cos(cosTheta) - tuple_infos.Item5.Item2;
                                 }
 
@@ -775,8 +773,6 @@ namespace Chromatic
 
                                             if (Math.Abs(diff_Delta_E_pure) < 0.15 && cosTheta > 0.2)    
                                             {
-                                                //diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - tuple_infos.Item5.Item2;
-
                                                 diff_Delta_E_pure = Delta_E_pure * Math.Cos(cosTheta) - tuple_infos.Item5.Item2;
                                             }
                                         }
@@ -928,8 +924,6 @@ namespace Chromatic
                                 //只有1个色号，且角度差距大于0.2时，计算CIE76色差时会考虑角度的影响
                                 if (Math.Abs(diff_Delta_E_pure) < 0.15 && cosTheta > 0.2 && list_lab.Count <= Ceramics_info_list.Count)
                                 {
-                                    //diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
-
                                     diff_Delta_E_pure = Delta_E_pure * Math.Cos(cosTheta) - mean_Delta_E_pure;
                                 }
 
@@ -945,8 +939,6 @@ namespace Chromatic
 
                                             if (Math.Abs(diff_Delta_E_pure) < 0.15 && cosTheta > 0.2) 
                                             {
-                                                //diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
-
                                                 diff_Delta_E_pure = Delta_E_pure * Math.Cos(cosTheta) - mean_Delta_E_pure;
                                             }
                                         }
@@ -1009,8 +1001,6 @@ namespace Chromatic
                                 //只有1个色号，且角度差距大于0.2时，计算CIE76色差时会考虑角度的影响
                                 if (Math.Abs(diff_Delta_E_pure) < 0.15 && cosTheta > 0.2 && list_lab.Count <= Ceramics_info_list.Count)
                                 {
-                                    //diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
-
                                     diff_Delta_E_pure = Delta_E_pure * Math.Cos(cosTheta) - mean_Delta_E_pure;
                                 }
 
@@ -1026,8 +1016,6 @@ namespace Chromatic
 
                                             if (Math.Abs(diff_Delta_E_pure) < 0.15 && cosTheta > 0.2)
                                             {
-                                                //diff_Delta_E_pure = Delta_E_pure * Math.Pow(cosTheta, 0.2) - mean_Delta_E_pure;
-
                                                 diff_Delta_E_pure = Delta_E_pure * Math.Cos(cosTheta) - mean_Delta_E_pure;
                                             }
                                         }
