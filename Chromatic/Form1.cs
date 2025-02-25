@@ -3662,7 +3662,7 @@ namespace Chromatic
         public static double CalculateCIEDE2000(LabColor lab_current, LabColor lab_templeate)
         {
             //根据具体业务需求调整kL、kC、kH参数（一般设置为1）。
-            double kL = 2; double kC = 0.8; double kH = 0.8;
+            double kL = 5; double kC = 1; double kH = 1;
 
             double L1 = lab_current.L, a1 = lab_current.A, b1 = lab_current.B;
             double L2 = lab_templeate.L, a2 = lab_templeate.A, b2 = lab_templeate.B;

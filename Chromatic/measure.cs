@@ -72,7 +72,7 @@ namespace Chromatic
                     {
                         //适当降低图像的分辨率来减少耗时，同时可以便面图像的高清带来的噪音对色差检测的影响
                         //Cv2.Resize(image_RGB, img_show, new Size(), 1, 1, InterpolationFlags.Area);
-                        Cv2.Resize(image_RGB, image_RGB, new Size(), 0.25, 0.25, InterpolationFlags.Area);
+                        //Cv2.Resize(image_RGB, image_RGB, new Size(), 0.25, 0.25, InterpolationFlags.Area);
                         //Cv2.ImWrite(@"C:\\Users\\\Lenovo\\Desktop\\test.jpg", image_RGB);
 
 
@@ -492,7 +492,7 @@ namespace Chromatic
                         //{
                         //    double Area = Cv2.ContourArea(contours[i]);
                         //    /* 通过轮廓的面积来选择最大的外围轮廓 */
-                        //    if (Area > 50000)
+                        //    if (Area > 500000)
                         //    {
                         //        double epsilon = 0.05 * Cv2.ArcLength(contours[i], true);
                         //        /* 用近似多变行逼近来拟合轮廓的点集 */
