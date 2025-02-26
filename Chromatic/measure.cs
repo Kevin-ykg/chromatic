@@ -72,7 +72,7 @@ namespace Chromatic
                     {
                         //适当降低图像的分辨率来减少耗时，同时可以便面图像的高清带来的噪音对色差检测的影响
                         //Cv2.Resize(image_RGB, img_show, new Size(), 1, 1, InterpolationFlags.Area);
-                        //Cv2.Resize(image_RGB, image_RGB, new Size(), 0.25, 0.25, InterpolationFlags.Area);
+                        Cv2.Resize(image_RGB, image_RGB, new Size(), 0.25, 0.25, InterpolationFlags.Area);
                         //Cv2.ImWrite(@"C:\\Users\\\Lenovo\\Desktop\\test.jpg", image_RGB);
 
 
