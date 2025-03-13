@@ -222,39 +222,39 @@ namespace Chromatic
                             {
                                 if (((stddevs - stddevs8) / 2) < 3)
                                 {
-                                    Coefficient = 4;
+                                    Coefficient = 2;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 3 && ((stddevs - stddevs8) / 2) < 4)
                                 {
-                                    Coefficient = 6;
+                                    Coefficient = 4;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 4 && ((stddevs - stddevs8) / 2) < 5)
                                 {
-                                    Coefficient = 8;
+                                    Coefficient = 4;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 5 && ((stddevs - stddevs8) / 2) < 7)
                                 {
-                                    Coefficient = 8;
+                                    Coefficient = 6;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 7 && ((stddevs - stddevs8) / 2) < 9)
                                 {
-                                    Coefficient = 10;
+                                    Coefficient = 6;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 9 && ((stddevs - stddevs8) / 2) < 12)
                                 {
-                                    Coefficient = 10;
+                                    Coefficient = 8;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 12 && ((stddevs - stddevs8) / 2) < 16)
                                 {
-                                    Coefficient = 12;
+                                    Coefficient = 8;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 16 && ((stddevs - stddevs8) / 2) < 20)
                                 {
-                                    Coefficient = 12;
+                                    Coefficient = 10;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 20 && ((stddevs - stddevs8) / 2) < 25)
                                 {
-                                    Coefficient = 14;
+                                    Coefficient = 12;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 25 && ((stddevs - stddevs8) / 2) < 30)
                                 {
@@ -266,11 +266,11 @@ namespace Chromatic
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 40 && ((stddevs - stddevs8) / 2) < 50)
                                 {
-                                    Coefficient = 16;
+                                    Coefficient = 18;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 50)
                                 {
-                                    Coefficient = 18;
+                                    Coefficient = 20;
                                 }
 
 
@@ -840,30 +840,25 @@ namespace Chromatic
         //对图像进行哈希编码，使其拥有唯一的身份码，用来区分不同的版型纹理
         public static int[] Fun_Hash_Code(Mat img)
         {
-            //降低图像的分辨率
+            //转换为灰度图，哈希编码只需要灰度图
             Cv2.CvtColor(img,img,ColorConversionCodes.BGR2GRAY);
-            Mat img_resize = new Mat();
-            Cv2.Resize(img, img_resize, new Size(), 0.1, 0.1, InterpolationFlags.Area);    //降低分辨率，与要拼接大图的网格大小有关
 
-            Mat finalImage = Composite_images(img_resize);
-            //Cv2.ImWrite(@"C:\\Users\\Lenovo\\Desktop\\DstImg.jpg", finalImage);
-
+            //sobel算子提取边缘
             //Mat mat_sobel = new Mat();
-            Cv2.Sobel(finalImage, finalImage, MatType.CV_8UC1, 1, 0, 9, 0.005, 0, BorderTypes.Default);
+            Cv2.Sobel(img, img, MatType.CV_8UC1, 1, 0, 9, 0.005, 0, BorderTypes.Default);
             //Cv2.Threshold(mat_sobel, mat_sobel, 80, 255, ThresholdTypes.Binary);
+            //Cv2.ImWrite(@"C:\\Users\\Lenovo\\Desktop\\DstImg.jpg", img);
+
+            //灰度均衡化，想增加图像纹理丰富度，不太好用
             //Mat mat_add = new Mat();
             //Cv2.Add(finalImage, mat_sobel, mat_add);
             //Cv2.EqualizeHist(finalImage,finalImage);
+
+            //拼接大图，丰富图像纹理，使其哈希编码更加准确
+            Mat img_resize = new Mat();
+            Cv2.Resize(img, img_resize, new Size(), 0.1, 0.1, InterpolationFlags.Area);    //降低分辨率，与要拼接大图的网格大小有关
+            Mat finalImage = Composite_images(img_resize);
             //Cv2.ImWrite(@"C:\\Users\\Lenovo\\Desktop\\DstImg.jpg", finalImage);
-
-
-            //int unit_width = img.Width / unit;
-            //int unit_height = img.Height / unit;
-            //int new_width = unit_width * unit;
-            //int new_height = unit_height * unit;
-
-            ////把图像的分辨率搞到一致
-            //Cv2.Resize(img, img, new Size(new_width, new_height));
 
 
             //1.自定义区域，通过哈希算法和汉明距离来衡量两幅图像的相似度

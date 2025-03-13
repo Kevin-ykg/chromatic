@@ -690,34 +690,54 @@ namespace Chromatic
                             
                             if (sigma < 200 && sigma_LAB_L < 2)
                             {
-                                k = -0.3;
+                                k = -0.5;
                                 use_cat = false;          //确定是纯色砖的色度计算公式只采用纯色的公式
 
                             }
                             else if (sigma >= 200 && sigma < 400 && sigma_LAB_L < 2)
                             {
-                                k = -0.2;
+                                k = -0.45;
                                 use_cat = false;
 
                             }
-                            else if (sigma >= 400 && sigma < 800)
+                            else if (sigma >= 400 && sigma < 600 && sigma_LAB_L < 2)
+                            {
+                                k = -0.3;
+
+                            }
+                            else if (sigma >= 600 && sigma < 800)
                             {
                                 k = 0.03;
 
                             }
                             else if (sigma >= 800 && sigma < 1200)
                             {
-                                k = 0.06;
+                                k = 0.05;
 
                             }
                             else if (sigma >= 1200 && sigma < 1600)
                             {
-                                k = 0.08;
+                                k = 0.07;
 
                             }
-                            else if (sigma >= 1600)
+                            else if (sigma >= 1600 && sigma < 3000)
                             {
-                                k = 0.1;
+                                k = 0.09;
+
+                            }
+                            else if (sigma >= 3000 && sigma < 5000)
+                            {
+                                k = 0.12;
+
+                            }
+                            else if (sigma >= 5000 && sigma < 8000)
+                            {
+                                k = 0.15;
+
+                            }
+                            else if (sigma >= 8000)
+                            {
+                                k = 0.2;
 
                             }
                             if (sigma_LAB_L > 5 && measure.Coefficient >= 20)
