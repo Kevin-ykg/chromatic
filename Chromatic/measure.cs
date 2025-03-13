@@ -30,7 +30,7 @@ namespace Chromatic
         public int count = 0;
         string path_use;                   //处理本地文件时图像的名称
 
-        static int unit = 100;  //哈希编码划分的区域，unit*unit
+        static int unit = 300;  //哈希编码划分的区域，unit*unit
         public int Coefficient = 6;   //用于判断版型复杂程度的系数
         public static double stddevs = 0; public static double means = 0; public static double means2 = 0; public static double means4 = 0; public static double stddevs8 = 0; //前几块图像灰度均方差的累计和
         public double Average_gray = 0;
@@ -41,9 +41,11 @@ namespace Chromatic
         public static bool Brightness_Judgment_Third = false;
         public double ExposureValue = 30.0;   //待设定的曝光时间
 
-        int[] Hash_Code = new int[unit * unit];  //初始化图像的哈希编码
-        int[] Hash_Code_rotate = new int[unit * unit];
+        int[] Hash_Code;  //初始化图像的哈希编码
+        int[] Hash_Code_rotate;
 
+        bool is_first = true;  //用来判断是否是第一次处理图像，以便于锁定图像仿射变换后的宽度和高度
+        double MaxHeight = 0, MaxWidth = 0;
 
         public void run(Mat image_RGB, string path)
         {
@@ -59,6 +61,7 @@ namespace Chromatic
                     string[] strings = path.Split(new char[] { '\\' });
                     path_use = strings[strings.Length - 1];
 
+                    
                     List<Point[]> contours_select = new List<Point[]>();
                     time_consuming = 0.0;
                     is_done = false;
@@ -231,43 +234,43 @@ namespace Chromatic
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 5 && ((stddevs - stddevs8) / 2) < 7)
                                 {
-                                    Coefficient = 10;
+                                    Coefficient = 8;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 7 && ((stddevs - stddevs8) / 2) < 9)
                                 {
-                                    Coefficient = 12;
+                                    Coefficient = 10;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 9 && ((stddevs - stddevs8) / 2) < 12)
                                 {
-                                    Coefficient = 14;
+                                    Coefficient = 10;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 12 && ((stddevs - stddevs8) / 2) < 16)
                                 {
-                                    Coefficient = 16;
+                                    Coefficient = 12;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 16 && ((stddevs - stddevs8) / 2) < 20)
                                 {
-                                    Coefficient = 18;
+                                    Coefficient = 12;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 20 && ((stddevs - stddevs8) / 2) < 25)
                                 {
-                                    Coefficient = 20;
+                                    Coefficient = 14;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 25 && ((stddevs - stddevs8) / 2) < 30)
                                 {
-                                    Coefficient = 22;
+                                    Coefficient = 14;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 30 && ((stddevs - stddevs8) / 2) < 40)
                                 {
-                                    Coefficient = 24;
+                                    Coefficient = 16;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 40 && ((stddevs - stddevs8) / 2) < 50)
                                 {
-                                    Coefficient = 26;
+                                    Coefficient = 16;
                                 }
                                 else if (((stddevs - stddevs8) / 2) >= 50)
                                 {
-                                    Coefficient = 28;
+                                    Coefficient = 18;
                                 }
 
 
@@ -279,65 +282,65 @@ namespace Chromatic
 
 
                         //方法二：二值化阈值定值
-                        //double Average_pidai = (double)Cv2.Mean(test_pidai);
-                        double Average_pidai = 5;
-                        Average_gray = mean.Val0;
-                        test_pidai.Dispose();
-                        if (Average_pidai >= 15) { thread_set = (int)Average_pidai + 10; }
-                        else if (Average_pidai < 15) { thread_set = (int)Average_pidai + 10; }
+                        ////double Average_pidai = (double)Cv2.Mean(test_pidai);
+                        //double Average_pidai = 5;
+                        //Average_gray = mean.Val0;
+                        //test_pidai.Dispose();
+                        //if (Average_pidai >= 15) { thread_set = (int)Average_pidai + 10; }
+                        //else if (Average_pidai < 15) { thread_set = (int)Average_pidai + 10; }
 
 
 
                         //方法一：二值化阈值动态调整
-                        //thread_set = 20;
-                        //if (mean.Val0 < 60)  //根据条件选取合适的分割阈值,以及曝光时间
-                        //{
-                        //    thread_set = 25;
-                        //}
-                        //else if (mean.Val0 >= 60 && mean.Val0 < 80)
-                        //{
-                        //    thread_set = 30;
-                        //}
-                        //else if (mean.Val0 >= 80 && mean.Val0 < 100)
-                        //{
-                        //    thread_set = 35;
-                        //}
-                        //else if (mean.Val0 >= 100 && mean.Val0 < 120)
-                        //{
-                        //    thread_set = 40;
-                        //}
-                        //else if (mean.Val0 >= 120 && mean.Val0 < 140)
-                        //{
-                        //    thread_set = 50;
-                        //}
-                        //else if (mean.Val0 >= 140 && mean.Val0 < 150)
-                        //{
-                        //    thread_set = 60;
-                        //}
-                        //else if (mean.Val0 >= 150 && mean.Val0 < 160)
-                        //{
-                        //    thread_set = 70;
-                        //    if (stddev.Val0 > 15) { thread_set = 60; }
-                        //    if (stddev.Val0 > 30) { thread_set = 50; }
-                        //}
-                        //else if (mean.Val0 >= 160 && mean.Val0 < 180)
-                        //{
-                        //    thread_set = 80;
-                        //    if (stddev.Val0 > 15) { thread_set = 70; }
-                        //    if (stddev.Val0 > 30) { thread_set = 60; }
-                        //}
-                        //else if (mean.Val0 >= 180 && mean.Val0 < 210)
-                        //{
-                        //    thread_set = 90;
-                        //    if (stddev.Val0 > 15) { thread_set = 80; }
-                        //    if (stddev.Val0 > 30) { thread_set = 70; }
-                        //}
-                        //else if (mean.Val0 >= 210)
-                        //{
-                        //    thread_set = 100;
-                        //    if (stddev.Val0 > 15) { thread_set = 90; }
-                        //    if (stddev.Val0 > 30) { thread_set = 80; }
-                        //}
+                        thread_set = 20;
+                        if (mean.Val0 < 60)  //根据条件选取合适的分割阈值,以及曝光时间
+                        {
+                            thread_set = 25;
+                        }
+                        else if (mean.Val0 >= 60 && mean.Val0 < 80)
+                        {
+                            thread_set = 30;
+                        }
+                        else if (mean.Val0 >= 80 && mean.Val0 < 100)
+                        {
+                            thread_set = 35;
+                        }
+                        else if (mean.Val0 >= 100 && mean.Val0 < 120)
+                        {
+                            thread_set = 40;
+                        }
+                        else if (mean.Val0 >= 120 && mean.Val0 < 140)
+                        {
+                            thread_set = 50;
+                        }
+                        else if (mean.Val0 >= 140 && mean.Val0 < 150)
+                        {
+                            thread_set = 60;
+                        }
+                        else if (mean.Val0 >= 150 && mean.Val0 < 160)
+                        {
+                            thread_set = 70;
+                            if (stddev.Val0 > 15) { thread_set = 60; }
+                            if (stddev.Val0 > 30) { thread_set = 50; }
+                        }
+                        else if (mean.Val0 >= 160 && mean.Val0 < 180)
+                        {
+                            thread_set = 80;
+                            if (stddev.Val0 > 15) { thread_set = 70; }
+                            if (stddev.Val0 > 30) { thread_set = 60; }
+                        }
+                        else if (mean.Val0 >= 180 && mean.Val0 < 210)
+                        {
+                            thread_set = 90;
+                            if (stddev.Val0 > 15) { thread_set = 80; }
+                            if (stddev.Val0 > 30) { thread_set = 70; }
+                        }
+                        else if (mean.Val0 >= 210)
+                        {
+                            thread_set = 100;
+                            if (stddev.Val0 > 15) { thread_set = 90; }
+                            if (stddev.Val0 > 30) { thread_set = 80; }
+                        }
 
 
                         Mat img_threshold = new Mat(image_RGB.Size(), image_RGB.Type());
@@ -423,89 +426,89 @@ namespace Chromatic
 
                         //方法二：通过拟合点形成直线来抓边
                         //通过条件把轮廓每条边上的点选取出来，拟合为直线后求出直线交点得到四个顶点坐标，important：选取点的坐标范围需要根据现场实际情况进行调整
-                        List<Point> contours_horizontal_bottom = new List<Point>();
-                        List<Point> contours_horizontal_top = new List<Point>();
-                        List<Point> contours_vertical_left = new List<Point>();
-                        List<Point> contours_vertical_right = new List<Point>();
+                        //List<Point> contours_horizontal_bottom = new List<Point>();
+                        //List<Point> contours_horizontal_top = new List<Point>();
+                        //List<Point> contours_vertical_left = new List<Point>();
+                        //List<Point> contours_vertical_right = new List<Point>();
 
-                        Line2D lines__horizontal_bottom;
-                        Line2D lines__horizontal_top;
-                        Line2D lines__vertical_left;
-                        Line2D lines__vertical_right;
-
-
-                        for (int x = 0; x < contours[max_id].Length; x++)
-                        {
-                            if (contours[max_id][x].X > 500 && contours[max_id][x].X < 1500 && contours[max_id][x].Y > 2200 && contours[max_id][x].Y < 3500)
-                            {
-                                contours_horizontal_bottom.Add(contours[max_id][x]);
-                            }
-
-                            if (contours[max_id][x].X > 415 && contours[max_id][x].X < 465 && contours[max_id][x].Y > 1 && contours[max_id][x].Y < 300)
-                            {
-                                contours_horizontal_top.Add(contours[max_id][x]);
-                            }
-
-                            if (contours[max_id][x].X > 1572 && contours[max_id][x].X < 1592 && contours[max_id][x].Y > 1 && contours[max_id][x].Y < 300)
-                            {
-                                contours_horizontal_top.Add(contours[max_id][x]);
-                            }
-
-                            if (contours[max_id][x].X > 1 && contours[max_id][x].X < 520 && contours[max_id][x].Y > 500 && contours[max_id][x].Y < 2000)
-                            {
-                                contours_vertical_left.Add(contours[max_id][x]);
-                            }
-
-                            if (contours[max_id][x].X > 1572 && contours[max_id][x].X < 2048 && contours[max_id][x].Y > 500 && contours[max_id][x].Y < 2000)
-                            {
-                                contours_vertical_right.Add(contours[max_id][x]);
-                            }
-                        }
+                        //Line2D lines__horizontal_bottom;
+                        //Line2D lines__horizontal_top;
+                        //Line2D lines__vertical_left;
+                        //Line2D lines__vertical_right;
 
 
+                        //for (int x = 0; x < contours[max_id].Length; x++)
+                        //{
+                        //    if (contours[max_id][x].X > 500 && contours[max_id][x].X < 1500 && contours[max_id][x].Y > 2200 && contours[max_id][x].Y < 3500)
+                        //    {
+                        //        contours_horizontal_bottom.Add(contours[max_id][x]);
+                        //    }
 
-                        lines__horizontal_bottom = Cv2.FitLine(contours_horizontal_bottom, DistanceTypes.L2, 0, 0.01, 0.01);
-                        lines__horizontal_top = Cv2.FitLine(contours_horizontal_top, DistanceTypes.L2, 0, 0.01, 0.01);
-                        lines__vertical_left = Cv2.FitLine(contours_vertical_left, DistanceTypes.L2, 0, 0.01, 0.01);
-                        lines__vertical_right = Cv2.FitLine(contours_vertical_right, DistanceTypes.L2, 0, 0.01, 0.01);
+                        //    if (contours[max_id][x].X > 415 && contours[max_id][x].X < 465 && contours[max_id][x].Y > 1 && contours[max_id][x].Y < 300)
+                        //    {
+                        //        contours_horizontal_top.Add(contours[max_id][x]);
+                        //    }
+
+                        //    if (contours[max_id][x].X > 1572 && contours[max_id][x].X < 1592 && contours[max_id][x].Y > 1 && contours[max_id][x].Y < 300)
+                        //    {
+                        //        contours_horizontal_top.Add(contours[max_id][x]);
+                        //    }
+
+                        //    if (contours[max_id][x].X > 1 && contours[max_id][x].X < 520 && contours[max_id][x].Y > 500 && contours[max_id][x].Y < 2000)
+                        //    {
+                        //        contours_vertical_left.Add(contours[max_id][x]);
+                        //    }
+
+                        //    if (contours[max_id][x].X > 1572 && contours[max_id][x].X < 2048 && contours[max_id][x].Y > 500 && contours[max_id][x].Y < 2000)
+                        //    {
+                        //        contours_vertical_right.Add(contours[max_id][x]);
+                        //    }
+                        //}
 
 
-                        Point CrossPoint_T_L;
-                        Point CrossPoint_T_R;
-                        Point CrossPoint_B_L;
-                        Point CrossPoint_B_R;
-                        CrossPoint_T_L = getCrossPoint(lines__horizontal_top, lines__vertical_left);
-                        CrossPoint_T_R = getCrossPoint(lines__horizontal_top, lines__vertical_right);
-                        CrossPoint_B_L = getCrossPoint(lines__horizontal_bottom, lines__vertical_left);
-                        CrossPoint_B_R = getCrossPoint(lines__horizontal_bottom, lines__vertical_right);
 
-                        Point[] srcPts = new Point[] { };
-                        //获取矩形四个角点
-                        srcPts = new Point[4] { CrossPoint_T_L, CrossPoint_T_R, CrossPoint_B_L, CrossPoint_B_R };
+                        //lines__horizontal_bottom = Cv2.FitLine(contours_horizontal_bottom, DistanceTypes.L2, 0, 0.01, 0.01);
+                        //lines__horizontal_top = Cv2.FitLine(contours_horizontal_top, DistanceTypes.L2, 0, 0.01, 0.01);
+                        //lines__vertical_left = Cv2.FitLine(contours_vertical_left, DistanceTypes.L2, 0, 0.01, 0.01);
+                        //lines__vertical_right = Cv2.FitLine(contours_vertical_right, DistanceTypes.L2, 0, 0.01, 0.01);
+
+
+                        //Point CrossPoint_T_L;
+                        //Point CrossPoint_T_R;
+                        //Point CrossPoint_B_L;
+                        //Point CrossPoint_B_R;
+                        //CrossPoint_T_L = getCrossPoint(lines__horizontal_top, lines__vertical_left);
+                        //CrossPoint_T_R = getCrossPoint(lines__horizontal_top, lines__vertical_right);
+                        //CrossPoint_B_L = getCrossPoint(lines__horizontal_bottom, lines__vertical_left);
+                        //CrossPoint_B_R = getCrossPoint(lines__horizontal_bottom, lines__vertical_right);
+
+                        //Point[] srcPts = new Point[] { };
+                        ////获取矩形四个角点
+                        //srcPts = new Point[4] { CrossPoint_T_L, CrossPoint_T_R, CrossPoint_B_L, CrossPoint_B_R };
 
 
 
                         //方法一：通过提取整个砖的形态来提取轮廓
-                        //Point[][] contours_poly = new Point[contours.Length][];
-                        //Point[] srcPts = new Point[] { };
-                        //for (int i = 0; i < contours.Length; i++)
-                        //{
-                        //    double Area = Cv2.ContourArea(contours[i]);
-                        //    /* 通过轮廓的面积来选择最大的外围轮廓 */
-                        //    if (Area > 500000)
-                        //    {
-                        //        double epsilon = 0.05 * Cv2.ArcLength(contours[i], true);
-                        //        /* 用近似多变行逼近来拟合轮廓的点集 */
-                        //        contours_poly[i] = Cv2.ApproxPolyDP(contours[i], epsilon, true);
+                        Point[][] contours_poly = new Point[contours.Length][];
+                        Point[] srcPts = new Point[] { };
+                        for (int i = 0; i < contours.Length; i++)
+                        {
+                            double Area = Cv2.ContourArea(contours[i]);
+                            /* 通过轮廓的面积来选择最大的外围轮廓 */
+                            if (Area > 600000)
+                            {
+                                double epsilon = 0.05 * Cv2.ArcLength(contours[i], true);
+                                /* 用近似多变行逼近来拟合轮廓的点集 */
+                                contours_poly[i] = Cv2.ApproxPolyDP(contours[i], epsilon, true);
 
-                        //        //获取矩形四个角点
-                        //        srcPts = new Point[4] { new Point(contours_poly[i][0].X, contours_poly[i][0].Y),
-                        //                            new Point(contours_poly[i][1].X, contours_poly[i][1].Y),
-                        //                            new Point(contours_poly[i][2].X, contours_poly[i][2].Y),
-                        //                            new Point(contours_poly[i][3].X, contours_poly[i][3].Y)};
-                        //    }
+                                //获取矩形四个角点
+                                srcPts = new Point[4] { new Point(contours_poly[i][0].X, contours_poly[i][0].Y),
+                                                    new Point(contours_poly[i][1].X, contours_poly[i][1].Y),
+                                                    new Point(contours_poly[i][2].X, contours_poly[i][2].Y),
+                                                    new Point(contours_poly[i][3].X, contours_poly[i][3].Y)};
+                            }
 
-                        //}
+                        }
 
 
 
@@ -536,14 +539,21 @@ namespace Chromatic
                         }
 
 
-                        /*变换后，图像的长和宽应该变为*/
-                        double LeftHeight = srcPts[T_L].DistanceTo(srcPts[B_L]);
-                        double RightHeight = srcPts[T_R].DistanceTo(srcPts[B_R]);
-                        double MaxHeight = Math.Round(Math.Max(LeftHeight, RightHeight) / 100) * 100;
 
-                        double UpWidth = srcPts[T_L].DistanceTo(srcPts[T_R]);
-                        double DownWidth = srcPts[B_L].DistanceTo(srcPts[B_R]);
-                        double MaxWidth = Math.Round(Math.Max(UpWidth, DownWidth) / 100) * 100;
+                        /*变换后，图像的长和宽应该变为，只计算一次，后面保持一致*/
+                        if (is_first)
+                        {
+                            is_first = false;
+
+                            double LeftHeight = srcPts[T_L].DistanceTo(srcPts[B_L]);
+                            double RightHeight = srcPts[T_R].DistanceTo(srcPts[B_R]);
+                            MaxHeight = Math.Round(Math.Max(LeftHeight, RightHeight) / 10) * 10;
+
+                            double UpWidth = srcPts[T_L].DistanceTo(srcPts[T_R]);
+                            double DownWidth = srcPts[B_L].DistanceTo(srcPts[B_R]);
+                            MaxWidth = Math.Round(Math.Max(UpWidth, DownWidth) / 10) * 10;
+                        }
+                        
 
 
                         /*这里使用的顺序是左上、右上、右下、左下顺时针顺序。SrcAffinePts、DstAffinePts要一一对应*/
@@ -563,6 +573,7 @@ namespace Chromatic
 
                         Cv2.WarpPerspective(image_RGB, DstImg, M, new Size(MaxWidth, MaxHeight));
                         //Cv2.ImWrite(@"C:\\Users\\Lenovo\\Desktop\\DstImg.jpg", DstImg);
+
                     }
                     else  //处理有色差较大的效果图
                     {
@@ -802,23 +813,57 @@ namespace Chromatic
         }
 
 
+        //进行图像的组合，将多张小图合成一张大图
+        public static Mat Composite_images(Mat img)
+        {
+            int gridSize = 10; // 4x4 网格
+            int imgWidth = img.Width, imgHeight = img.Height;  // 单张图片大小
+            int finalWidth = gridSize * imgWidth, finalHeight = gridSize * imgHeight;
+
+            // 创建最终的大图像（白色背景）
+            Mat finalImage = new Mat(new Size(finalWidth, finalHeight), MatType.CV_8UC1);
+
+            for (int i = 0; i < gridSize * gridSize; i++)
+            {
+                // 计算拼接位置
+                int x = (i % gridSize) * imgWidth;
+                int y = (i / gridSize) * imgHeight;
+
+                // 复制到大图像中
+                img.CopyTo(new Mat(finalImage, new Rect(x, y, imgWidth, imgHeight)));
+
+            }
+            return finalImage;
+        }
+
 
         //对图像进行哈希编码，使其拥有唯一的身份码，用来区分不同的版型纹理
         public static int[] Fun_Hash_Code(Mat img)
         {
             //降低图像的分辨率
-            //Cv2.Resize(img, img, new Size(), 0.1, 0.1, Interpolation.Area);
             Cv2.CvtColor(img,img,ColorConversionCodes.BGR2GRAY);
-            Cv2.Sobel(img, img, MatType.CV_8UC1, 1, 0, 9, 0.005, 0, BorderTypes.Default);
-            //Cv2.ImWrite(@"C:\\Users\\Lenovo\\Desktop\\DstImg.jpg", img);
+            Mat img_resize = new Mat();
+            Cv2.Resize(img, img_resize, new Size(), 0.1, 0.1, InterpolationFlags.Area);    //降低分辨率，与要拼接大图的网格大小有关
 
-            int unit_width = img.Width / unit;
-            int unit_height = img.Height / unit;
-            int new_width = unit_width * unit;
-            int new_height = unit_height * unit;
+            Mat finalImage = Composite_images(img_resize);
+            //Cv2.ImWrite(@"C:\\Users\\Lenovo\\Desktop\\DstImg.jpg", finalImage);
 
-            //把图像的分辨率搞到一致
-            Cv2.Resize(img, img, new Size(new_width, new_height));
+            //Mat mat_sobel = new Mat();
+            Cv2.Sobel(finalImage, finalImage, MatType.CV_8UC1, 1, 0, 9, 0.005, 0, BorderTypes.Default);
+            //Cv2.Threshold(mat_sobel, mat_sobel, 80, 255, ThresholdTypes.Binary);
+            //Mat mat_add = new Mat();
+            //Cv2.Add(finalImage, mat_sobel, mat_add);
+            //Cv2.EqualizeHist(finalImage,finalImage);
+            //Cv2.ImWrite(@"C:\\Users\\Lenovo\\Desktop\\DstImg.jpg", finalImage);
+
+
+            //int unit_width = img.Width / unit;
+            //int unit_height = img.Height / unit;
+            //int new_width = unit_width * unit;
+            //int new_height = unit_height * unit;
+
+            ////把图像的分辨率搞到一致
+            //Cv2.Resize(img, img, new Size(new_width, new_height));
 
 
             //1.自定义区域，通过哈希算法和汉明距离来衡量两幅图像的相似度
@@ -827,9 +872,9 @@ namespace Chromatic
             int[] Hash = new int[unit * unit];
             Mat[] mats = new Mat[unit * unit];
             Rect[] rects = new Rect[unit * unit];
-            double mean = (double)Cv2.Mean(img);
-            int unit_width_new = img.Width / unit;
-            int unit_height_new = img.Height / unit;
+            double mean = (double)Cv2.Mean(finalImage);
+            int unit_width_new = finalImage.Width / unit;
+            int unit_height_new = finalImage.Height / unit;
 
 
             //主体思想是，把图像分区域，然后每个子区域的灰度均值与全图的灰度均值对比较，大于则该子区域赋值1，小于0
@@ -839,7 +884,7 @@ namespace Chromatic
                 {
 
                     rects[num] = new Rect(unit_width_new * j, unit_height_new * i, unit_width_new, unit_height_new);
-                    mats[num] = new Mat(img, rects[num]);
+                    mats[num] = new Mat(finalImage, rects[num]);
 
                     unit_mean = (double)Cv2.Mean(mats[num]);
 

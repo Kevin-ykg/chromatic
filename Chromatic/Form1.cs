@@ -687,6 +687,7 @@ namespace Chromatic
                         {
                             double k = 0.1;
                             double sigma = GetSigma(list_Hamming_Distance);
+                            
                             if (sigma < 200 && sigma_LAB_L < 2)
                             {
                                 k = -0.3;
@@ -711,12 +712,12 @@ namespace Chromatic
                             }
                             else if (sigma >= 1200 && sigma < 1600)
                             {
-                                k = 0.1;
+                                k = 0.08;
 
                             }
                             else if (sigma >= 1600)
                             {
-                                k = 0.15;
+                                k = 0.1;
 
                             }
                             if (sigma_LAB_L > 5 && measure.Coefficient >= 20)
@@ -729,7 +730,7 @@ namespace Chromatic
                             {
                                 Coefficient = (Coefficient + k * measure.Coefficient);
 
-                                if (Coefficient < 0) { Coefficient = 1.5; }
+                                if (Coefficient < 0) { Coefficient = 2.5; }
                             }
                             Pattern_ok = true;
                         }
@@ -3220,8 +3221,8 @@ namespace Chromatic
                 new Action(() =>
                 {
                     path_scr_batch = textBox3.Text.ToString() ;
-                    //dir = Directory.GetFiles(path_scr_batch + "\\").OrderBy(file => File.GetLastWriteTime(file)).ToArray();
-                    dir = Directory.GetFiles(path_scr_batch + "\\", "*.jpg").OrderBy(path => ExtractSequenceNumber(path)).ToArray();
+                    dir = Directory.GetFiles(path_scr_batch + "\\").OrderBy(file => File.GetLastWriteTime(file)).ToArray();
+                    //dir = Directory.GetFiles(path_scr_batch + "\\", "*.jpg").OrderBy(path => ExtractSequenceNumber(path)).ToArray();
 
                 }).Invoke();
             }
@@ -3878,7 +3879,7 @@ namespace Chromatic
                     pictureBox1.Image = BitmapConverter.ToBitmap(show);
                     pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
                 }
-                File.Delete(address_show + "\\" + "num_" + (count_tick + 1).ToString() + ".jpg");  //是否删除用于界面显示的图像
+                //File.Delete(address_show + "\\" + "num_" + (count_tick + 1).ToString() + ".jpg");  //是否删除用于界面显示的图像
 
 
                 //界面上当前图像对应的色号以及色值结果显示
