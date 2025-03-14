@@ -75,7 +75,7 @@ namespace Chromatic
                     {
                         //适当降低图像的分辨率来减少耗时，同时可以便面图像的高清带来的噪音对色差检测的影响
                         //Cv2.Resize(image_RGB, img_show, new Size(), 1, 1, InterpolationFlags.Area);
-                        Cv2.Resize(image_RGB, image_RGB, new Size(), 0.25, 0.25, InterpolationFlags.Area);
+                        //Cv2.Resize(image_RGB, image_RGB, new Size(), 0.25, 0.25, InterpolationFlags.Area);
                         //Cv2.ImWrite(@"C:\\Users\\\Lenovo\\Desktop\\test.jpg", image_RGB);
 
 
@@ -87,9 +87,10 @@ namespace Chromatic
                         Mat image_mono = new Mat(image_RGB.Size(), MatType.CV_8UC1);
                         Cv2.CvtColor(image_RGB, image_mono, ColorConversionCodes.BGR2GRAY);
 
-                        Mat test_pidai = new Mat(image_mono, new Rect(100, 10, 30, 500));   //悬空铝合金的反光带
+
                         Mat test = new Mat(image_mono, new Rect((int)width / 2 - (int)((height / 4) * Aspect_ratio), (int)height / 2 - (int)((width / 3) / Aspect_ratio), (int)(2 * (height / 4) * Aspect_ratio), (int)(2 * (width / 3) / Aspect_ratio)));
                         //Cv2.ImWrite(@"C:\\Users\\\Lenovo\\Desktop\\test.jpg", image_mono);
+
 
                         //求图像灰度值的均值和方差，通过选取的砖中心区域的灰度均值来判断砖的色系，根据条件选取合适的二值化分割阈值，确保砖分割边缘的准确
                         //关键问题还是在于高角度效果图时皮带背景的干扰较大，当砖的色系较暗时，不好选取二值化分割阈值，选低了皮带干扰多，选高了砖表面边缘暗色花纹容易被认为是缺陷
@@ -281,17 +282,15 @@ namespace Chromatic
 
 
 
-                        //方法二：二值化阈值定值
-                        ////double Average_pidai = (double)Cv2.Mean(test_pidai);
+                        //方法一：二值化阈值定值
                         //double Average_pidai = 5;
                         //Average_gray = mean.Val0;
-                        //test_pidai.Dispose();
                         //if (Average_pidai >= 15) { thread_set = (int)Average_pidai + 10; }
                         //else if (Average_pidai < 15) { thread_set = (int)Average_pidai + 10; }
 
 
 
-                        //方法一：二值化阈值动态调整
+                        //方法二：二值化阈值动态调整
                         thread_set = 20;
                         if (mean.Val0 < 60)  //根据条件选取合适的分割阈值,以及曝光时间
                         {
@@ -315,34 +314,33 @@ namespace Chromatic
                         }
                         else if (mean.Val0 >= 140 && mean.Val0 < 150)
                         {
-                            thread_set = 60;
+                            thread_set = 80;
                         }
                         else if (mean.Val0 >= 150 && mean.Val0 < 160)
                         {
-                            thread_set = 70;
-                            if (stddev.Val0 > 15) { thread_set = 60; }
-                            if (stddev.Val0 > 30) { thread_set = 50; }
+                            thread_set = 80;
                         }
                         else if (mean.Val0 >= 160 && mean.Val0 < 180)
-                        {
-                            thread_set = 80;
-                            if (stddev.Val0 > 15) { thread_set = 70; }
-                            if (stddev.Val0 > 30) { thread_set = 60; }
-                        }
-                        else if (mean.Val0 >= 180 && mean.Val0 < 210)
                         {
                             thread_set = 90;
                             if (stddev.Val0 > 15) { thread_set = 80; }
                             if (stddev.Val0 > 30) { thread_set = 70; }
                         }
-                        else if (mean.Val0 >= 210)
+                        else if (mean.Val0 >= 180 && mean.Val0 < 210)
                         {
                             thread_set = 100;
                             if (stddev.Val0 > 15) { thread_set = 90; }
                             if (stddev.Val0 > 30) { thread_set = 80; }
                         }
+                        else if (mean.Val0 >= 210)
+                        {
+                            thread_set = 110;
+                            if (stddev.Val0 > 15) { thread_set = 100; }
+                            if (stddev.Val0 > 30) { thread_set = 90; }
+                        }
 
-
+                        
+                        //二值化处理
                         Mat img_threshold = new Mat(image_RGB.Size(), image_RGB.Type());
                         Cv2.Threshold(image_mono, img_threshold, thread_set, 255, ThresholdTypes.Binary);
                         image_mono.Dispose();
@@ -424,7 +422,7 @@ namespace Chromatic
 
 
 
-                        //方法二：通过拟合点形成直线来抓边
+                        //方法一：通过拟合点形成直线来抓边
                         //通过条件把轮廓每条边上的点选取出来，拟合为直线后求出直线交点得到四个顶点坐标，important：选取点的坐标范围需要根据现场实际情况进行调整
                         //List<Point> contours_horizontal_bottom = new List<Point>();
                         //List<Point> contours_horizontal_top = new List<Point>();
@@ -488,7 +486,7 @@ namespace Chromatic
 
 
 
-                        //方法一：通过提取整个砖的形态来提取轮廓
+                        //方法二：通过提取整个砖的形态来提取轮廓
                         Point[][] contours_poly = new Point[contours.Length][];
                         Point[] srcPts = new Point[] { };
                         for (int i = 0; i < contours.Length; i++)
@@ -607,22 +605,9 @@ namespace Chromatic
                     //对L,A,B数据的区间的转换
                     DstImg.ConvertTo(DstImg, MatType.CV_32FC3, 1.0 / 255);
 
-
-
-
                     // 添加上需要旋转角度,逆时针为正,主要用于让界面显示的图像和工人的观感一致
                     double angle = 0;
                     rotate_image(img_show, angle);
-
-
-                    //Mat img_mask_RGB = new Mat(image_RGB.Size(), image_RGB.Type(), 0);
-                    //Scalar scalar = new Scalar(1, 1, 1);
-                    //Cv2.DrawContours(img_mask_RGB, contours_select, -1, scalar, Cv2.FILLED);
-                    //Cv2.Blur(image_RGB, image_RGB, new Size(3, 3));
-                    //Mat img_dst = new Mat(image_RGB.Size(), image_RGB.Type());
-                    //Cv2.Multiply(image_RGB, img_mask_RGB, img_dst);
-                    //img_mask_RGB.Dispose();
-                    //Cv2.ImWrite(@"C:\\Users\\Lenovo\\Desktop\\img_dst.jpg", img_dst);
 
 
                     //获得三通道的LAB和HSV信息
@@ -645,26 +630,6 @@ namespace Chromatic
                     double BGR_B,BGR_G,BGR_R;
                     Cv2.Split(DstImg,out BGR);
                     //Cv2.ImWrite(@"C:\\Users\\Lenovo\\Desktop\\RGB.jpg", BGR[2]);
-
-                    //Mat img_mask_mono = new Mat(image_RGB.Size(), MatType.CV_8UC1, 0);
-                    //Cv2.DrawContours(img_mask_mono, contours_select, -1, 1, Cv2.FILLED);
-                    //double area = Cv2.Sum(img_mask_mono)[0];
-                    //Cv2.Multiply(LAB[0], img_mask_mono, LAB[0]);
-                    //Cv2.Multiply(LAB[1], img_mask_mono, LAB[1]);
-                    //Cv2.Multiply(LAB[2], img_mask_mono, LAB[2]);
-                    //Cv2.Multiply(HSV[0], img_mask_mono, HSV[0]);
-                    //img_mask_mono.Dispose();
-
-                    //HSV_H = Cv2.Sum(HSV[0])[0] / area;
-                    //LAB_L = Cv2.Sum(LAB[0])[0] / area;
-                    //LAB_A = Cv2.Sum(LAB[1])[0] / area;
-                    //LAB_B = Cv2.Sum(LAB[2])[0] / area;
-
-
-                    //把OpenCV计算的LAB结果还原到本来的区间
-                    //LAB[0] = LAB[0] / 2.55;
-                    //LAB[1] = LAB[1] - 128;
-                    //LAB[2] = LAB[2] - 128;
 
 
                     //计算对应通道的均值

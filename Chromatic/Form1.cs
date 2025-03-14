@@ -3241,8 +3241,8 @@ namespace Chromatic
                 new Action(() =>
                 {
                     path_scr_batch = textBox3.Text.ToString() ;
-                    dir = Directory.GetFiles(path_scr_batch + "\\").OrderBy(file => File.GetLastWriteTime(file)).ToArray();
-                    //dir = Directory.GetFiles(path_scr_batch + "\\", "*.jpg").OrderBy(path => ExtractSequenceNumber(path)).ToArray();
+                    //dir = Directory.GetFiles(path_scr_batch + "\\").OrderBy(file => File.GetLastWriteTime(file)).ToArray();
+                    dir = Directory.GetFiles(path_scr_batch + "\\", "*.jpg").OrderBy(path => ExtractSequenceNumber(path)).ToArray();
 
                 }).Invoke();
             }
