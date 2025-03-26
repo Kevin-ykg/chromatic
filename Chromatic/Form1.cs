@@ -21,8 +21,9 @@ using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 using System.Text.RegularExpressions;
-
-
+using System.Reflection;
+using System.Runtime;
+using Template_Matching;
 
 namespace Chromatic
 {
@@ -32,6 +33,8 @@ namespace Chromatic
     
     public partial class Form1 : Form
     {
+        template_match Match = new template_match();    //模板匹配类方法初始化
+
         //色差处理类方法初始化
         measure measure = new measure();
 
@@ -125,6 +128,7 @@ namespace Chromatic
         public double Hamming_Distances = 0;
         public double Coefficient = 6;
         public bool Pattern_ok = false;
+        double k = 0.1;
 
         public bool is_first_color = true;
         bool is_first1 = true; bool is_first2 = true; bool is_first3 = true; bool is_first4 = true; bool is_first5 = true; bool is_first6 = true; bool is_first7 = true; bool is_first8 = true; bool is_first9 = true; bool is_first10 = true; bool is_first11 = true; bool is_first12 = true; bool is_first13 = true; bool is_first14 = true; bool is_first15 = true; bool is_first16 = true; bool is_first17 = true; bool is_first18 = true; bool is_first19 = true; bool is_first20 = true; bool is_first21 = true; bool is_first22 = true; bool is_first23 = true; bool is_first24 = true; bool is_first25 = true; bool is_first26 = true;
@@ -676,8 +680,8 @@ namespace Chromatic
                     int num = 0;
                     foreach (var tuple_infos in Ceramics_info_list)
                     {
-                        int Hamming_Distance = Get_Hamming_Distance(tuple_infos.Item2, Hash_Code);
-                        int Hamming_Distance_rotate = Get_Hamming_Distance(tuple_infos.Item3, Hash_Code);
+                        int Hamming_Distance = Match.Get_Hamming_Distance(tuple_infos.Item2, Hash_Code);
+                        int Hamming_Distance_rotate = Match.Get_Hamming_Distance(tuple_infos.Item3, Hash_Code);
 
                         //砖型复杂系数的二次判定
                         num_hash++;
@@ -685,61 +689,8 @@ namespace Chromatic
                         list_Hamming_Distance.Add(Hamming_Distance);
                         if (num_hash == 16)
                         {
-                            double k = 0.1;
-                            double sigma = GetSigma(list_Hamming_Distance);
-                            
-                            if (sigma < 200 && sigma_LAB_L < 2)
-                            {
-                                k = -0.5;
-                                use_cat = false;          //确定是纯色砖的色度计算公式只采用纯色的公式
+                            k = Match.get_coefficient_second(list_Hamming_Distance);
 
-                            }
-                            else if (sigma >= 200 && sigma < 400 && sigma_LAB_L < 2)
-                            {
-                                k = -0.45;
-                                use_cat = false;
-
-                            }
-                            else if (sigma >= 400 && sigma < 600 && sigma_LAB_L < 2)
-                            {
-                                k = -0.3;
-
-                            }
-                            else if (sigma >= 600 && sigma < 800)
-                            {
-                                k = 0.03;
-
-                            }
-                            else if (sigma >= 800 && sigma < 1200)
-                            {
-                                k = 0.05;
-
-                            }
-                            else if (sigma >= 1200 && sigma < 1600)
-                            {
-                                k = 0.07;
-
-                            }
-                            else if (sigma >= 1600 && sigma < 3000)
-                            {
-                                k = 0.09;
-
-                            }
-                            else if (sigma >= 3000 && sigma < 5000)
-                            {
-                                k = 0.12;
-
-                            }
-                            else if (sigma >= 5000 && sigma < 8000)
-                            {
-                                k = 0.15;
-
-                            }
-                            else if (sigma >= 8000)
-                            {
-                                k = 0.2;
-
-                            }
                             if (sigma_LAB_L > 5 && measure.Coefficient >= 20)
                             {
                                 Complex_patterns = true;      //表示当前砖面的花纹复杂
@@ -3178,7 +3129,6 @@ namespace Chromatic
         //本地文件夹的批量图像处理
         private void button2_Click(object sender, EventArgs e)
         {
-            
             Online = false;
 
             if (Is_Have_Folder_Nest == true)
@@ -3306,6 +3256,7 @@ namespace Chromatic
                     TimeSpan ts2 = stpwth1.Elapsed;
                     textBox10.Invoke(new Action(() => textBox10.Text = ts2.TotalMilliseconds.ToString("f2")));
 
+                    //Cv2.ImWrite(count_batch + ".jpg", image_high);
 
                     first_run = false;
                     //剩余张数的显示
@@ -3362,6 +3313,7 @@ namespace Chromatic
                         TimeSpan ts3 = stpwth1.Elapsed;
                         textBox10.Invoke(new Action(() => textBox10.Text = ts3.TotalMilliseconds.ToString("f2")));
 
+                        //Cv2.ImWrite(count_batch + ".jpg", image_high);
 
                         stpwth2.Restart();
                         if (has_folder == false)
@@ -3409,7 +3361,7 @@ namespace Chromatic
                     }
 
                 }
-
+              
             }
 
         }
@@ -3643,7 +3595,7 @@ namespace Chromatic
         static double Get_Delta_E_texture(double LAB_L, double LAB_A, double LAB_B)
         {
             //return Math.Sqrt(LAB_A * LAB_A * 1.6 - LAB_B * LAB_B * 0.8);
-            return Math.Sqrt(0.01 * LAB_L * LAB_L + 2 * LAB_A * LAB_A + 2 * LAB_B * LAB_B);
+            return Math.Sqrt(0.01 * LAB_L * LAB_L + 1.6 * LAB_A * LAB_A + 1.6 * LAB_B * LAB_B);
         }
 
 
@@ -3651,7 +3603,7 @@ namespace Chromatic
         static double Get_Delta_E_pure(double LAB_L, double LAB_A, double LAB_B)
         {
             //return Math.Sqrt(LAB_A * LAB_A * 1.6 - LAB_B * LAB_B * 0.8);
-            return Math.Sqrt(0.01 * LAB_L * LAB_L + 2 * LAB_A * LAB_A + 2 * LAB_B * LAB_B);
+            return Math.Sqrt(0.01 * LAB_L * LAB_L + 1.6 * LAB_A * LAB_A + 1.6 * LAB_B * LAB_B);
         }
 
 
@@ -3892,7 +3844,7 @@ namespace Chromatic
 
                 //Thread.Sleep(1);
                 //界面上图像的显示
-                Mat show = Cv2.ImRead(address_show + "\\" + "num_" + (count_tick+1).ToString() + ".jpg", ImreadModes.Color);
+                Mat show = Cv2.ImRead(address_show + "\\" + "num_" + (count_tick + 1).ToString() + ".jpg", ImreadModes.Color);
                 if (Is_Lock_Interface == false)
                 {
                     pictureBox1.Image = null;

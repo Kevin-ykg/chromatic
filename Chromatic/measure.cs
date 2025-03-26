@@ -9,13 +9,15 @@ using System.Threading.Tasks;
 using NPOI.SS.Formula.Functions;
 using OpenCvSharp;
 using static System.Console;
-
+using Template_Matching;
 
 
 namespace Chromatic
 {
     internal class measure
     {
+        template_match match = new template_match();
+
         public event delegate_result_return event_result_return;
         public event delegate_error_return event_error_return;
 
@@ -30,8 +32,9 @@ namespace Chromatic
         public int count = 0;
         string path_use;                   //处理本地文件时图像的名称
 
+
         static int unit = 300;  //哈希编码划分的区域，unit*unit
-        public int Coefficient = 6;   //用于判断版型复杂程度的系数
+        public double Coefficient = 6;   //用于判断版型复杂程度的系数
         public static double stddevs = 0; public static double means = 0; public static double means2 = 0; public static double means4 = 0; public static double stddevs8 = 0; //前几块图像灰度均方差的累计和
         public double Average_gray = 0;
         public static int count_pattern = 0;
@@ -61,7 +64,6 @@ namespace Chromatic
                     string[] strings = path.Split(new char[] { '\\' });
                     path_use = strings[strings.Length - 1];
 
-                    
                     List<Point[]> contours_select = new List<Point[]>();
                     time_consuming = 0.0;
                     is_done = false;
@@ -221,59 +223,7 @@ namespace Chromatic
 
                             if (count_pattern == 10)    //判断砖型的复杂程度
                             {
-                                if (((stddevs - stddevs8) / 2) < 3)
-                                {
-                                    Coefficient = 2;
-                                }
-                                else if (((stddevs - stddevs8) / 2) >= 3 && ((stddevs - stddevs8) / 2) < 4)
-                                {
-                                    Coefficient = 4;
-                                }
-                                else if (((stddevs - stddevs8) / 2) >= 4 && ((stddevs - stddevs8) / 2) < 5)
-                                {
-                                    Coefficient = 4;
-                                }
-                                else if (((stddevs - stddevs8) / 2) >= 5 && ((stddevs - stddevs8) / 2) < 7)
-                                {
-                                    Coefficient = 6;
-                                }
-                                else if (((stddevs - stddevs8) / 2) >= 7 && ((stddevs - stddevs8) / 2) < 9)
-                                {
-                                    Coefficient = 6;
-                                }
-                                else if (((stddevs - stddevs8) / 2) >= 9 && ((stddevs - stddevs8) / 2) < 12)
-                                {
-                                    Coefficient = 8;
-                                }
-                                else if (((stddevs - stddevs8) / 2) >= 12 && ((stddevs - stddevs8) / 2) < 16)
-                                {
-                                    Coefficient = 8;
-                                }
-                                else if (((stddevs - stddevs8) / 2) >= 16 && ((stddevs - stddevs8) / 2) < 20)
-                                {
-                                    Coefficient = 10;
-                                }
-                                else if (((stddevs - stddevs8) / 2) >= 20 && ((stddevs - stddevs8) / 2) < 25)
-                                {
-                                    Coefficient = 12;
-                                }
-                                else if (((stddevs - stddevs8) / 2) >= 25 && ((stddevs - stddevs8) / 2) < 30)
-                                {
-                                    Coefficient = 14;
-                                }
-                                else if (((stddevs - stddevs8) / 2) >= 30 && ((stddevs - stddevs8) / 2) < 40)
-                                {
-                                    Coefficient = 16;
-                                }
-                                else if (((stddevs - stddevs8) / 2) >= 40 && ((stddevs - stddevs8) / 2) < 50)
-                                {
-                                    Coefficient = 18;
-                                }
-                                else if (((stddevs - stddevs8) / 2) >= 50)
-                                {
-                                    Coefficient = 20;
-                                }
-
+                                 Coefficient = match.get_coefficient_first(stddevs);
 
                                 Pattern_Judgment = true;
                             }
@@ -310,7 +260,7 @@ namespace Chromatic
                         }
                         else if (mean.Val0 >= 120 && mean.Val0 < 140)
                         {
-                            thread_set = 50;
+                            thread_set = 60;
                         }
                         else if (mean.Val0 >= 140 && mean.Val0 < 150)
                         {
@@ -339,7 +289,7 @@ namespace Chromatic
                             if (stddev.Val0 > 30) { thread_set = 90; }
                         }
 
-                        
+
                         //二值化处理
                         Mat img_threshold = new Mat(image_RGB.Size(), image_RGB.Type());
                         Cv2.Threshold(image_mono, img_threshold, thread_set, 255, ThresholdTypes.Binary);
@@ -464,7 +414,6 @@ namespace Chromatic
                         //}
 
 
-
                         //lines__horizontal_bottom = Cv2.FitLine(contours_horizontal_bottom, DistanceTypes.L2, 0, 0.01, 0.01);
                         //lines__horizontal_top = Cv2.FitLine(contours_horizontal_top, DistanceTypes.L2, 0, 0.01, 0.01);
                         //lines__vertical_left = Cv2.FitLine(contours_vertical_left, DistanceTypes.L2, 0, 0.01, 0.01);
@@ -584,15 +533,15 @@ namespace Chromatic
                     //获得图像的哈希编码
                     Mat img_hash = DstImg.Clone();
                     Mat img_hash_rotate = DstImg.Clone();
-                    rotate_image(img_hash_rotate, 90);
-                    rotate_image(img_hash_rotate, 90);
+                    match.rotate_image(img_hash_rotate,90);
+                    match.rotate_image(img_hash_rotate,90);
                     //Cv2.ImWrite(@"C:\\Users\\Lenovo\\Desktop\\img_hash.jpg", img_hash);
                     //Cv2.ImWrite(@"C:\\Users\\Lenovo\\Desktop\\img_hash_rotate.jpg", img_hash_rotate);
 
 
                     //同时计算原图和旋转180°后两幅图像的哈希编码，如现场有其他类似
-                    Hash_Code = measure.Fun_Hash_Code(img_hash);
-                    Hash_Code_rotate = measure.Fun_Hash_Code(img_hash_rotate);
+                    Hash_Code = match.Fun_Hash_Code(img_hash);
+                    Hash_Code_rotate =match.Fun_Hash_Code(img_hash_rotate);
                     img_hash.Dispose();
                     img_hash_rotate.Dispose();
 
@@ -946,9 +895,7 @@ namespace Chromatic
             }
             catch (Exception ex)
             {
-
             }
-
         }
 
 
@@ -995,7 +942,6 @@ namespace Chromatic
                 Create_Excel();
 
             }
-
 
         }
     }
