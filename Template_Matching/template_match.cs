@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using OpenCvSharp;
 
 
@@ -14,6 +15,121 @@ namespace Template_Matching
         /// </summary>
         public int unit { get; set; } = 300;
 
+
+        /// <summary>
+        /// 用于判断版型相似度的系数
+        /// </summary>
+        public double Coefficient { get; set; } = 6;
+
+
+        
+        /// <summary>
+        /// 陶瓷的版型，原图哈希编码,旋转180°图哈希编码
+        /// </summary>
+        public List<Tuple<string, int[], int[]>> Ceramics_info_list { get; set; } = new List<Tuple<string, int[], int[]>>();
+
+
+        /// <summary>
+        /// 砖的版型
+        /// </summary>
+        public string pattern { get; set; } = "";
+
+
+        /// <summary>
+        /// 版型匹配的前置系数准备是否完成
+        /// </summary>
+        public bool Pattern_ok { get; set; } = false;
+
+
+
+        /// <summary>
+        /// 当前色号标准是否稳定
+        /// </summary>
+        public bool is_stable { get; set; } = false;    
+
+
+
+        /// <summary>
+        /// 获得当前砖的版型
+        /// </summary>
+        /// <param name="Hash_Code"></param>
+        /// <param name="Hash_Code_rotate"></param>
+        /// <returns></returns>
+        public string get_pattern(int[] Hash_Code, int[] Hash_Code_rotate)
+        {
+            int num = 0;
+
+            foreach (var tuple_infos in Ceramics_info_list)
+            {
+                //计算当前砖的哈希编码与已有版型哈希编码的汉明距离
+                int Hamming_Distance = Get_Hamming_Distance(tuple_infos.Item2, Hash_Code);
+                int Hamming_Distance_rotate = Get_Hamming_Distance(tuple_infos.Item3, Hash_Code_rotate);
+
+
+                //如果汉明距离小于哈希矩阵数量的阈值，则认为两块砖的版型接近
+                if ((Hamming_Distance < Hash_Code.Length / Coefficient || Hamming_Distance_rotate < Hash_Code.Length / Coefficient) && Pattern_ok == true)
+                {
+                    pattern = tuple_infos.Item1; //获取当前所匹配到的版型
+
+                    break;   //匹配上了就跳出循环
+                }
+
+
+                num++;
+
+                //如果轮询当前版型数据集后没有相似的，则是新版型，增加进数据集中
+                if (num == Ceramics_info_list.Count && is_stable == false && Pattern_ok == true)
+                {
+                    //如果轮询当前版型数据集后没有相似的，则是新版型，增加进数据集中
+
+                    string type = "版型" + (Ceramics_info_list.Count + 1).ToString();
+                    pattern = type;
+
+
+
+                    if (is_stable == false)
+                    {
+
+                        Ceramics_info_list.Add(new Tuple<string, int[], int[]>(type, Hash_Code, Hash_Code_rotate));
+                    }
+
+                    break;
+                }
+                else if (num == Ceramics_info_list.Count && is_stable == true && Pattern_ok == true)
+                {
+                    //版型稳定后，如果版型未匹配成功则不新增
+
+                    pattern = "版型0";
+
+
+
+                    break;
+                }
+            }
+
+            return pattern;
+        }
+
+
+
+        /// <summary>
+        /// 设置陶瓷版型相似度的系数
+        /// </summary>
+        /// <param name="Hamming_Distances"></param>
+        /// <param name="list_Hamming_Distance"></param>
+        public void set_Coefficient(double Hamming_Distances, List<double> list_Hamming_Distance)
+        {
+            double k = get_coefficient_second(list_Hamming_Distance);
+
+
+            Coefficient = (Ceramics_info_list[0].Item2.Length / (Hamming_Distances / 15));
+            if (Coefficient <= 30)
+            {
+                Coefficient = (Coefficient + k * Coefficient);
+
+                if (Coefficient < 0) { Coefficient = 2.5; }
+            }
+        }
 
 
         /// <summary>
@@ -81,7 +197,9 @@ namespace Template_Matching
                 }
             }
 
+            finalImage.Dispose();
             return Hash;
+            
         }
 
 
@@ -173,15 +291,13 @@ namespace Template_Matching
 
 
         /// <summary>
-        /// 获取Cv2.MeanStdDev计算得到砖面纹理标准差的复杂度系数，在第十块砖时计算
+        /// 获取Cv2.MeanStdDev，第一次计算得到砖面纹理标准差的复杂度系数
         /// </summary>
         /// <param name="mean_stddev"></param>
         /// <returns></returns>
-        public double get_coefficient_first(double stddevs)
+        public double get_coefficient_first(double mean_stddev)
         {
-            double mean_stddev = 0.0;
             double Coefficient = 0.0;
-            mean_stddev = stddevs / 10;
 
             if (mean_stddev < 3)
             {

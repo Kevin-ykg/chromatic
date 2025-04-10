@@ -10,6 +10,7 @@ using NPOI.SS.Formula.Functions;
 using OpenCvSharp;
 using static System.Console;
 using Template_Matching;
+using static System.Net.Mime.MediaTypeNames;
 
 
 namespace Chromatic
@@ -221,9 +222,10 @@ namespace Chromatic
 
                             }
 
-                            if (count_pattern == 10)    //判断砖型的复杂程度
+                            if (count == 10)    //判断砖型的复杂程度
                             {
-                                 Coefficient = match.get_coefficient_first(stddevs);
+                                double mean_stddev = stddevs / count;
+                                Coefficient = match.get_coefficient_first(stddevs);
 
                                 Pattern_Judgment = true;
                             }
@@ -524,12 +526,25 @@ namespace Chromatic
                     }
                     else  //处理有色差较大的效果图
                     {
+                        Cv2.Resize(image_RGB, image_RGB, new Size(), 0.25, 0.25, InterpolationFlags.Area);
                         DstImg = image_RGB;
+                        Scalar mean, stddev;
+                        Cv2.MeanStdDev(DstImg, out mean, out stddev);
+                        stddevs += stddev.Val0;
+
+                        //1.第一步：计算第一次砖面的复杂度系数
+                        if (count == 4)
+                        {
+                            double mean_stddev = stddevs / count;
+                            Coefficient = match.get_coefficient_first(mean_stddev);
+                        }
+
+
                         Pattern_Judgment = true;
                     }
 
 
-
+                    //2.第二步：进行哈希编码
                     //获得图像的哈希编码
                     Mat img_hash = DstImg.Clone();
                     Mat img_hash_rotate = DstImg.Clone();

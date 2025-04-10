@@ -664,7 +664,7 @@ namespace Chromatic
             //砖版型的在线判断并搜集,前提是前几块砖的版型复杂程度判断完成
             if (measure.Pattern_Judgment == true && result_count >= 1)
             {
-
+                //3.第三步：保存第一块砖的版型和哈希编码信息
                 if (first_Ceramics == true)
                 {
                     first_Ceramics = false;
@@ -680,6 +680,7 @@ namespace Chromatic
                     int num = 0;
                     foreach (var tuple_infos in Ceramics_info_list)
                     {
+                        //4.第四步：计算第二次砖面的复杂度系数
                         int Hamming_Distance = Match.Get_Hamming_Distance(tuple_infos.Item2, Hash_Code);
                         int Hamming_Distance_rotate = Match.Get_Hamming_Distance(tuple_infos.Item3, Hash_Code);
 
@@ -707,6 +708,7 @@ namespace Chromatic
                         }
 
 
+                        //5.第五步：如果汉明距离小于哈希矩阵数量的阈值，则认为两块砖的版型接近
                         //如果汉明距离小于哈希矩阵数量的1/6，则认为两块砖的版型接近
                         if ((Hamming_Distance < Hash_Code.Length / Coefficient || Hamming_Distance_rotate < Hash_Code.Length / Coefficient) && Pattern_ok == true)
                         { 
@@ -871,6 +873,7 @@ namespace Chromatic
 
                         num++;
 
+                        //6.第六步：如果轮询当前版型数据集后没有相似的，则是新版型，增加进数据集中
                         if (num == Ceramics_info_list.Count && is_stable == false && Pattern_ok == true)
                         {
                             //如果轮询当前版型数据集后没有相似的，则是新版型，增加进数据集中
@@ -3165,13 +3168,13 @@ namespace Chromatic
                                 strings.Add(Path);
                                 j++;
 
-                                if (j == 1)
+                                if (j == 2)
                                 {
                                     break;
                                 }
                             }
                         }
-                        if (strings.Count == 1)
+                        if (strings.Count == 2)
                         {
                             ImagePaths.Add(strings);
                             names_use.Add(names[i]);
@@ -3249,7 +3252,7 @@ namespace Chromatic
                     }
                     else if (has_folder == true)
                     {
-                        image_high = new Mat(ImagePaths[0][0], ImreadModes.Color);
+                        image_high = new Mat(ImagePaths[0][1], ImreadModes.Color);
                     }
                     //image_low = new Mat(ImagePaths[0][1], ImreadModes.Grayscale);
                     stpwth1.Stop();
@@ -3307,7 +3310,7 @@ namespace Chromatic
                         }
                         else if (has_folder == true)
                         {
-                            image_high = new Mat(ImagePaths[count_batch][0], ImreadModes.Color);
+                            image_high = new Mat(ImagePaths[count_batch][1], ImreadModes.Color);
                         }
                         stpwth1.Stop();
                         TimeSpan ts3 = stpwth1.Elapsed;
